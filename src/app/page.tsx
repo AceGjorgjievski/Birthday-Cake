@@ -1,66 +1,89 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"; // ⚠️ Important: this tells Next.js this component is client-side
+
+import { useEffect, useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment } from "@react-three/drei";
+import CakeScene from "./CakeScene";
+import Confetti from 'react-confetti';
+
 
 export default function Home() {
+  const [age, setAge] = useState<number | null>(null);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [allBlown, setAllBlown] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+    const updateSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  // Only show Canvas after mount
+  useEffect(() => {
+    const input = prompt("🎂 Enter your age");
+    const num = Number(input);
+    if (num > 0 && num < 100) setAge(num);
+
+    setShowCanvas(true); // now safe to render Canvas
+  }, []);
+
+  if (!age)
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>Loading...</div>
+    );
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div style={{ height: "100vh", width: "100vw" }}>
+      {showCanvas && (
+        <>
+          <Canvas camera={{ position: [0, 4, 8], fov: 85 }} gl={{ toneMappingExposure: 1 }}
+  shadows>
+            {/* Very low ambient */}
+            <ambientLight intensity={0.15} />
+
+            {/* Warm key light (like candle glow) */}
+            <pointLight position={[0, 4, 4]} intensity={2} color="#ffcc88" />
+
+            {/* Soft fill from above */}
+            <spotLight
+              position={[0, 6, 0]}
+              angle={0.5}
+              penumbra={0.6}
+              intensity={1}
+              color="#ffd9a0"
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+            {/* Subtle rim light */}
+            <directionalLight
+              position={[-5, 3, -5]}
+              intensity={0.3}
+              color="#ffffff"
+            />
+
+            <directionalLight position={[5, 5, 5]} intensity={1} />
+            {/* <Environment preset="sunset" /> */}
+            <CakeScene age={age} onAllBlown={() => setAllBlown(true)} />
+            <OrbitControls enableZoom={false} />
+          </Canvas>
+
+          {allBlown && (
+            <Confetti
+              width={windowSize.width}
+              height={windowSize.height}
+              recycle={false}
+              numberOfPieces={400}
+              gravity={0.2}
+              initialVelocityX={{ min: -10, max: 10 }}
+              initialVelocityY={{ min: -10, max: 10 }}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }
