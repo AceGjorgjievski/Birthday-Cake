@@ -10,8 +10,10 @@ export default function Home() {
   const [showCanvas, setShowCanvas] = useState(false);
   const [allBlown, setAllBlown] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-  const [currentSong, setCurrentSong] = useState<'birthday' | 'congratulations' | null>(null);
-  
+  const [currentSong, setCurrentSong] = useState<
+    "birthday" | "congratulations" | null
+  >(null);
+
   const birthdayAudioRef = useRef<HTMLAudioElement | null>(null);
   const congratsAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -26,7 +28,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setShowCanvas(true);
+    setTimeout(() => {
+      setShowCanvas(true);
+    }, 0);
   }, []);
 
   const playCongratulationsSong = () => {
@@ -34,19 +38,24 @@ export default function Home() {
       birthdayAudioRef.current.pause();
       birthdayAudioRef.current.currentTime = 0;
     }
-    
+
     if (congratsAudioRef.current) {
       congratsAudioRef.current.currentTime = 0;
-      congratsAudioRef.current.play()
+      congratsAudioRef.current
+        .play()
         .then(() => {
-          setCurrentSong('congratulations');
+          setCurrentSong("congratulations");
           console.log("Congratulations song started");
         })
         .catch((e) => {
           console.log("Error playing congratulations song:", e);
-          document.addEventListener('click', () => {
-            congratsAudioRef.current?.play().catch(console.error);
-          }, { once: true });
+          document.addEventListener(
+            "click",
+            () => {
+              congratsAudioRef.current?.play().catch(console.error);
+            },
+            { once: true }
+          );
         });
     }
   };
@@ -60,27 +69,29 @@ export default function Home() {
       birthdayAudioRef.current = new Audio("/songs/happy-birthday.mp3");
       birthdayAudioRef.current.volume = 0.6;
       birthdayAudioRef.current.preload = "auto";
-      
+
       congratsAudioRef.current = new Audio("/songs/congratulations.mp3");
       congratsAudioRef.current.volume = 0.5;
       congratsAudioRef.current.preload = "auto";
 
-      birthdayAudioRef.current.play()
+      birthdayAudioRef.current
+        .play()
         .then(() => {
-          setCurrentSong('birthday');
+          setCurrentSong("birthday");
           console.log("Birthday song started");
         })
         .catch((e) => {
           console.log("Autoplay blocked, waiting for interaction");
           const startOnClick = () => {
-            birthdayAudioRef.current?.play()
-              .then(() => setCurrentSong('birthday'))
+            birthdayAudioRef.current
+              ?.play()
+              .then(() => setCurrentSong("birthday"))
               .catch(console.error);
           };
-          document.addEventListener('click', startOnClick, { once: true });
+          document.addEventListener("click", startOnClick, { once: true });
         });
 
-      birthdayAudioRef.current.addEventListener('ended', () => {
+      birthdayAudioRef.current.addEventListener("ended", () => {
         console.log("Birthday song ended");
         if (!allBlown) {
           playCongratulationsSong();
@@ -105,15 +116,17 @@ export default function Home() {
 
   if (!age)
     return (
-      <div style={{ 
-        textAlign: "center", 
-        marginTop: "50px",
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
-        <button 
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: "50px",
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <button
           onClick={handleAgeInput}
           style={{
             padding: "15px 30px",
@@ -123,7 +136,7 @@ export default function Home() {
             border: "none",
             borderRadius: "50px",
             cursor: "pointer",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
           }}
         >
           🎂 Enter Your Age
@@ -142,19 +155,22 @@ export default function Home() {
     >
       {showCanvas && (
         <>
-          <div style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            background: "rgba(0,0,0,0.7)",
-            color: "white",
-            padding: "10px 15px",
-            borderRadius: "10px",
-            zIndex: 1000,
-            fontSize: "14px"
-          }}>
-            {currentSong === 'birthday' && "🎵 Playing: Happy Birthday"}
-            {currentSong === 'congratulations' && "🎉 Playing: Congratulations!"}
+          <div
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              background: "rgba(0,0,0,0.7)",
+              color: "white",
+              padding: "10px 15px",
+              borderRadius: "10px",
+              zIndex: 1000,
+              fontSize: "14px",
+            }}
+          >
+            {currentSong === "birthday" && "🎵 Playing: Happy Birthday"}
+            {currentSong === "congratulations" &&
+              "🎉 Playing: Congratulations!"}
           </div>
 
           <Canvas
@@ -164,8 +180,18 @@ export default function Home() {
           >
             <ambientLight intensity={0.15} />
             <pointLight position={[0, 4, 4]} intensity={2} color="#ffcc88" />
-            <spotLight position={[0, 6, 0]} angle={0.5} penumbra={0.6} intensity={1} color="#ffd9a0" />
-            <directionalLight position={[-5, 3, -5]} intensity={0.3} color="#ffffff" />
+            <spotLight
+              position={[0, 6, 0]}
+              angle={0.5}
+              penumbra={0.6}
+              intensity={1}
+              color="#ffd9a0"
+            />
+            <directionalLight
+              position={[-5, 3, -5]}
+              intensity={0.3}
+              color="#ffffff"
+            />
             <directionalLight position={[5, 5, 5]} intensity={1} />
             <CakeScene age={age} onAllBlown={() => setAllBlown(true)} />
             <OrbitControls enableZoom={false} />
@@ -211,7 +237,7 @@ export default function Home() {
                 initialVelocityX={{ min: -10, max: 10 }}
                 initialVelocityY={{ min: -10, max: 10 }}
               />
-              
+
               <div
                 style={{
                   position: "fixed",
@@ -235,12 +261,20 @@ export default function Home() {
           )}
         </>
       )}
-      
+
       <style jsx>{`
         @keyframes popIn {
-          0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-          70% { transform: translate(-50%, -50%) scale(1.1); }
-          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          0% {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+          }
+          70% {
+            transform: translate(-50%, -50%) scale(1.1);
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>
