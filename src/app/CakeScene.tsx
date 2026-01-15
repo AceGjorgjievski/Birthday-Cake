@@ -10,11 +10,10 @@ type Props = {
   onAllBlown?: () => void;
 };
 
-// 🔧 CONFIG (easy to tweak)
-const TOTAL_STAGES = 8; // 7–9 feels best
-const MIN_PERCENT = 0.1; // 10%
-const MAX_PERCENT = 0.15; // 15%
-const FADE_SPEED = 0.01; // flame dying speed
+const TOTAL_STAGES = 8;
+const MIN_PERCENT = 0.1;
+const MAX_PERCENT = 0.15;
+const FADE_SPEED = 0.01;
 
 export default function CakeScene({ age, onAllBlown }: Props) {
   const [flames, setFlames] = useState<number[]>(Array(age).fill(1));
@@ -23,7 +22,6 @@ export default function CakeScene({ age, onAllBlown }: Props) {
   const stageRef = useRef(0);
   const lastBlowTime = useRef(0);
 
-  // Candles that are currently fading out
   const dyingRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -48,10 +46,8 @@ export default function CakeScene({ age, onAllBlown }: Props) {
 
       const avg = data.reduce((a, b) => a + b, 0) / data.length;
 
-      // Smooth mic input (real-life delay)
       volumeRef.current = THREE.MathUtils.lerp(volumeRef.current, avg, 0.04);
 
-      // Normalize blow strength (0 → 1)
       const strength = THREE.MathUtils.clamp(
         (volumeRef.current - 30) / 60,
         0,
@@ -60,10 +56,8 @@ export default function CakeScene({ age, onAllBlown }: Props) {
 
       const now = performance.now();
 
-      // Determine current stage based on strength
       const stage = Math.floor(strength * TOTAL_STAGES);
 
-      // Trigger only when stage increases + delay
       if (stage > stageRef.current && now - lastBlowTime.current > 600) {
         const previousStage = stageRef.current;
         stageRef.current = stage;
@@ -72,7 +66,6 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         setFlames((prev) => {
           const next = [...prev];
 
-          // Randomize % per stage slightly (10–15%)
           const percentPerStage =
             MIN_PERCENT + Math.random() * (MAX_PERCENT - MIN_PERCENT);
 
@@ -81,12 +74,11 @@ export default function CakeScene({ age, onAllBlown }: Props) {
             Math.floor(next.length * percentPerStage)
           );
 
-          // How many candles to extinguish THIS stage
           let toKill = candlesPerStage * (stage - previousStage);
 
           for (let i = 0; i < next.length && toKill > 0; i++) {
             if (next[i] > 0 && !dyingRef.current.has(i)) {
-              dyingRef.current.add(i); // 🔥 mark candle as dying
+              dyingRef.current.add(i);
               toKill--;
             }
           }
@@ -95,7 +87,6 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         });
       }
 
-      // Slowly fade dying candles every frame
       setFlames((prev) => {
         let changed = false;
 
@@ -135,6 +126,13 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
 
+        // todo:
+        // add surface 
+        // add modal with set timeout 
+        // and after the conffeti add 
+        // text below the cake to glow
+        //deploy - vercel
+
         return (
           <group key={i} position={[x, 0, z]}>
             <mesh>
@@ -151,7 +149,7 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         );
       })}
 
-      {/* 3D Text */}
+      {/* text below*/}
       <Text
         position={[0, -2.8, 0]}
         fontSize={0.6}

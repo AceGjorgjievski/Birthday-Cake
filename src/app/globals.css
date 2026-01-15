@@ -1,11 +1,27 @@
-:root {
-  --background: #ededed;
-  --foreground: #171717;
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+body {
+  background: linear-gradient(135deg, #1d9bf0 0%, #0f4c75 100%), var(--background);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ffffff;
+    --background: #050505;
     --foreground: #171717;
+  }
+
+  body {
+    background: linear-gradient(135deg, #1d9bf0 0%, #0f4c75 100%), var(--background);
   }
 }
