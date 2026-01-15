@@ -127,9 +127,9 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         const z = Math.sin(angle) * radius;
 
         // todo:
-        // add surface 
-        // add modal with set timeout 
-        // and after the conffeti add 
+        // add surface
+        // add modal with set timeout
+        // and after the conffeti add
         // text below the cake to glow
         //deploy - vercel
 

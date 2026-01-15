@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import CakeScene from "./CakeScene";
@@ -33,7 +33,7 @@ export default function Home() {
     }, 0);
   }, []);
 
-  const playCongratulationsSong = () => {
+  const playCongratulationsSong = useCallback(() => {
     if (birthdayAudioRef.current) {
       birthdayAudioRef.current.pause();
       birthdayAudioRef.current.currentTime = 0;
@@ -47,8 +47,8 @@ export default function Home() {
           setCurrentSong("congratulations");
           console.log("Congratulations song started");
         })
-        .catch((e) => {
-          console.log("Error playing congratulations song:", e);
+        .catch((error) => {
+          console.log("Error playing congratulations song:", error.message);
           document.addEventListener(
             "click",
             () => {
@@ -58,7 +58,11 @@ export default function Home() {
           );
         });
     }
-  };
+  }, []);
+
+  const handleAllBlown = useCallback(() => {
+    setAllBlown(true);
+  }, []);
 
   const handleAgeInput = () => {
     const input = prompt("🎂 Enter your age");
@@ -80,13 +84,13 @@ export default function Home() {
           setCurrentSong("birthday");
           console.log("Birthday song started");
         })
-        .catch((e) => {
-          console.log("Autoplay blocked, waiting for interaction");
+        .catch((error) => {
+          console.log("Autoplay blocked, waiting for interaction:", error.message);
           const startOnClick = () => {
             birthdayAudioRef.current
               ?.play()
               .then(() => setCurrentSong("birthday"))
-              .catch(console.error);
+              .catch((err) => console.error("Click play failed:", err));
           };
           document.addEventListener("click", startOnClick, { once: true });
         });
@@ -105,7 +109,7 @@ export default function Home() {
       console.log("Candles blown, switching to congratulations song");
       playCongratulationsSong();
     }
-  }, [allBlown]);
+  }, [allBlown, playCongratulationsSong]);
 
   useEffect(() => {
     return () => {
@@ -124,6 +128,7 @@ export default function Home() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          background: "linear-gradient(135deg, #1d9bf0 0%, #0f4c75 100%)",
         }}
       >
         <button
@@ -131,12 +136,21 @@ export default function Home() {
           style={{
             padding: "15px 30px",
             fontSize: "18px",
-            background: "linear-gradient(135deg, #1d9bf0 0%, #0f4c75 100%)",
+            background: "linear-gradient(135deg, #ff6f91 0%, #ff4d6d 100%)",
             color: "white",
             border: "none",
             borderRadius: "50px",
             cursor: "pointer",
             boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            transition: "transform 0.2s, box-shadow 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.05)";
+            e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
           }}
         >
           🎂 Enter Your Age
@@ -166,11 +180,12 @@ export default function Home() {
               borderRadius: "10px",
               zIndex: 1000,
               fontSize: "14px",
+              backdropFilter: "blur(10px)",
+              display: currentSong ? "block" : "none",
             }}
           >
             {currentSong === "birthday" && "🎵 Playing: Happy Birthday"}
-            {currentSong === "congratulations" &&
-              "🎉 Playing: Congratulations!"}
+            {currentSong === "congratulations" && "🎉 Playing: Congratulations!"}
           </div>
 
           <Canvas
@@ -193,7 +208,7 @@ export default function Home() {
               color="#ffffff"
             />
             <directionalLight position={[5, 5, 5]} intensity={1} />
-            <CakeScene age={age} onAllBlown={() => setAllBlown(true)} />
+            <CakeScene age={age} onAllBlown={handleAllBlown} />
             <OrbitControls enableZoom={false} />
           </Canvas>
 
@@ -253,6 +268,7 @@ export default function Home() {
                   fontWeight: "bold",
                   zIndex: 1000,
                   animation: "popIn 0.5s ease-out",
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 🎉 WISH GRANTED! 🎉
