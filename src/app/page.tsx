@@ -85,7 +85,10 @@ export default function Home() {
           console.log("Birthday song started");
         })
         .catch((error) => {
-          console.log("Autoplay blocked, waiting for interaction:", error.message);
+          console.log(
+            "Autoplay blocked, waiting for interaction:",
+            error.message
+          );
           const startOnClick = () => {
             birthdayAudioRef.current
               ?.play()
@@ -185,7 +188,8 @@ export default function Home() {
             }}
           >
             {currentSong === "birthday" && "🎵 Playing: Happy Birthday"}
-            {currentSong === "congratulations" && "🎉 Playing: Congratulations!"}
+            {currentSong === "congratulations" &&
+              "🎉 Playing: Congratulations!"}
           </div>
 
           <Canvas

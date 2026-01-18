@@ -27,38 +27,72 @@ export default function CakeScene({ age, onAllBlown }: Props) {
   useEffect(() => {
     let analyser: AnalyserNode | null = null;
     let data: Uint8Array<ArrayBuffer> | null = null;
+    let ctx: AudioContext | null = null;
+    let rafId: number;
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const ctx = new AudioContext();
-      analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-      data = new Uint8Array(analyser.frequencyBinCount);
-      ctx.createMediaStreamSource(stream).connect(analyser);
-    });
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      })
+      .then((stream) => {
+        ctx = new AudioContext();
+
+        // 🔴 IMPORTANT: Resume AudioContext on user interaction (Safari / prod)
+        if (ctx.state === "suspended") {
+          const resume = () => {
+            ctx?.resume();
+            document.removeEventListener("click", resume);
+            document.removeEventListener("touchstart", resume);
+          };
+          document.addEventListener("click", resume);
+          document.addEventListener("touchstart", resume);
+        }
+
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+
+        data = new Uint8Array(analyser.frequencyBinCount);
+
+        const source = ctx.createMediaStreamSource(stream);
+        source.connect(analyser);
+      })
+      .catch((err) => {
+        console.error("Microphone access error:", err);
+      });
 
     const tick = () => {
       if (!analyser || !data) {
-        requestAnimationFrame(tick);
+        rafId = requestAnimationFrame(tick);
         return;
       }
 
       analyser.getByteFrequencyData(data);
 
-      const avg = data.reduce((a, b) => a + b, 0) / data.length;
+      // 🔊 Average volume
+      const avg = data.reduce((sum, v) => sum + v, 0) / data.length;
 
-      volumeRef.current = THREE.MathUtils.lerp(volumeRef.current, avg, 0.04);
+      // Smooth volume
+      volumeRef.current = THREE.MathUtils.lerp(volumeRef.current, avg, 0.05);
 
+      // 🔥 Strength tuned for real devices
       const strength = THREE.MathUtils.clamp(
-        (volumeRef.current - 30) / 60,
+        (volumeRef.current - 20) / 45,
         0,
         1
       );
 
       const now = performance.now();
 
+      /* -------------------------------
+       1️⃣ STAGE-BASED KILL (kept)
+    -------------------------------- */
       const stage = Math.floor(strength * TOTAL_STAGES);
 
-      if (stage > stageRef.current && now - lastBlowTime.current > 600) {
+      if (stage > stageRef.current && now - lastBlowTime.current > 500) {
         const previousStage = stageRef.current;
         stageRef.current = stage;
         lastBlowTime.current = now;
@@ -87,6 +121,31 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         });
       }
 
+      /* -------------------------------
+       2️⃣ CONTINUOUS KILL (NEW 🔥)
+       Prevents getting stuck forever
+    -------------------------------- */
+      if (strength > 0.35 && now - lastBlowTime.current > 300) {
+        lastBlowTime.current = now;
+
+        setFlames((prev) => {
+          const next = [...prev];
+          let kills = 0;
+
+          for (let i = 0; i < next.length && kills < 2; i++) {
+            if (next[i] > 0 && !dyingRef.current.has(i)) {
+              dyingRef.current.add(i);
+              kills++;
+            }
+          }
+
+          return next;
+        });
+      }
+
+      /* -------------------------------
+       3️⃣ FADE DYING FLAMES
+    -------------------------------- */
       setFlames((prev) => {
         let changed = false;
 
@@ -99,17 +158,22 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         });
 
         if (changed && next.every((f) => f === 0)) {
-          if (onAllBlown) onAllBlown();
+          onAllBlown?.();
         }
 
         return changed ? next : prev;
       });
 
-      requestAnimationFrame(tick);
+      rafId = requestAnimationFrame(tick);
     };
 
     tick();
-  }, []);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      ctx?.close();
+    };
+  }, [onAllBlown]);
 
   return (
     <>
