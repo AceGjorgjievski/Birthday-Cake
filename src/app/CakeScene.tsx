@@ -221,7 +221,7 @@ export default function CakeScene({ age, onAllBlown }: Props) {
         anchorX="center"
         anchorY="middle"
       >
-        Happy Bday Girls🎉
+        Maybe I'm late but, HBD Dear 🎉
       </Text>
     </>
   );
