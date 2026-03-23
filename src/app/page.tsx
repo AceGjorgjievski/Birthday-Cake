@@ -13,6 +13,7 @@ export default function Home() {
   const [currentSong, setCurrentSong] = useState<
     "birthday" | "congratulations" | null
   >(null);
+  const [showWishText, setShowWishText] = useState(false);
 
   const birthdayAudioRef = useRef<HTMLAudioElement | null>(null);
   const congratsAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -54,7 +55,7 @@ export default function Home() {
             () => {
               congratsAudioRef.current?.play().catch(console.error);
             },
-            { once: true }
+            { once: true },
           );
         });
     }
@@ -87,7 +88,7 @@ export default function Home() {
         .catch((error) => {
           console.log(
             "Autoplay blocked, waiting for interaction:",
-            error.message
+            error.message,
           );
           const startOnClick = () => {
             birthdayAudioRef.current
@@ -111,6 +112,13 @@ export default function Home() {
     if (allBlown) {
       console.log("Candles blown, switching to congratulations song");
       playCongratulationsSong();
+
+      setShowWishText(true);
+      const timer = setTimeout(() => {
+        setShowWishText(false);
+      }, 7000);
+
+      return () => clearTimeout(timer);
     }
   }, [allBlown, playCongratulationsSong]);
 
@@ -257,26 +265,28 @@ export default function Home() {
                 initialVelocityY={{ min: -10, max: 10 }}
               />
 
-              <div
-                style={{
-                  position: "fixed",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  background: "rgba(255, 107, 107, 0.9)",
-                  color: "white",
-                  padding: "30px 40px",
-                  borderRadius: "20px",
-                  textAlign: "center",
-                  fontSize: "28px",
-                  fontWeight: "bold",
-                  zIndex: 1000,
-                  animation: "popIn 0.5s ease-out",
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-                🎉 WISH GRANTED! 🎉
-              </div>
+              {showWishText && (
+                <div
+                  style={{
+                    position: "fixed",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    background: "rgba(255, 107, 107, 0.9)",
+                    color: "white",
+                    padding: "30px 40px",
+                    borderRadius: "20px",
+                    textAlign: "center",
+                    fontSize: "28px",
+                    fontWeight: "bold",
+                    zIndex: 1000,
+                    animation: "popIn 0.5s ease-out",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  🎉 WISH GRANTED! 🎉
+                </div>
+              )}
             </>
           )}
         </>

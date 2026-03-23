@@ -215,13 +215,13 @@ export default function CakeScene({ age, onAllBlown }: Props) {
 
       {/* text below*/}
       <Text
-        position={[0, -2.8, 0]}
+        position={[0, -3.0, 0]}
         fontSize={0.6}
         color="#ff6f91"
         anchorX="center"
         anchorY="middle"
       >
-        Maybe I'm late but, HBD Dear 🎉
+        {`Maybe I'm late \n but,\n HBD Dear 🎉`}
       </Text>
     </>
   );
